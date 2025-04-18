@@ -5,101 +5,70 @@ import (
 	"strconv"
 )
 
-var x int
-var y int
+var px int
+var py int
 var plansza [][]int
+var n int
+var tura int
+var odwiedzone_pola int
 
 func main() {
+
 	var input string
 
-	fmt.Print("Podaj szerokość planszy: ")
+	fmt.Print("Podaj wymiar planszy: ")
 	fmt.Scan(&input)
 
 	var err error
-	x, err = strconv.Atoi(input)
+	n, err = strconv.Atoi(input)
 	if err != nil {
 		fmt.Println("Nie podałeś liczby!")
 		return
 	}
 
-	fmt.Print("Podaj wysokość planszy: ")
+	plansza = make([][]int, n)
+	for i := range plansza {
+		plansza[i] = make([]int, n)
+	}
+
+	fmt.Print("Podaj pozycję skoczka x: ")
+	fmt.Scan(&input)
+	px, err = strconv.Atoi(input)
+	if err != nil {
+		fmt.Println("Nie podałeś liczby!")
+		return
+	}
+
+	fmt.Print("Podaj pozycję skoczka y: ")
 	fmt.Scan(&input)
 
-	y, err = strconv.Atoi(input)
+	py, err = strconv.Atoi(input)
 	if err != nil {
 		fmt.Println("Nie podałeś liczby!")
 		return
 	}
-
-	plansza = make([][]int, y)
-	for i := range plansza {
-		plansza[i] = make([]int, x)
-	}
-
+	odwiedzone_pola = 0
+	tura = 1
 	fmt.Println("Plansza:")
-	for _, row := range plansza {
-		fmt.Println(row)
-	}
-
-	position := [2]int{0, 4}
-	var previous_position [2]int
-	current_moveset := check_movement(&position)
-
-	move(current_moveset, previous_position, position, 1)
-
-	fmt.Println("Plansza:")
-	for _, row := range plansza {
+	for _, row := range solve(n, plansza, odwiedzone_pola, [2]int{px, py}, tura) {
 		fmt.Println(row)
 	}
 }
 
-func check_movement(position *[2]int) [][2]int {
-	Xoffsets := [4]int{-2, -1, 1, 2}
-	Yoffsets := Xoffsets
-	var available_moves [][2]int
-
-	for i := range Xoffsets {
-		for j := range Yoffsets {
-			if Yoffsets[i] == Xoffsets[j] || Yoffsets[i] == -Xoffsets[j] {
-				continue
-			}
-
-			newX := position[1] + Xoffsets[j]
-			newY := position[0] + Yoffsets[i]
-
-			if newX < 0 || newY < 0 || newX >= x || newY >= y {
-				continue
-			}
-
-			if plansza[newY][newX] == 0 {
-				available_moves = append(available_moves, [2]int{newY, newX})
-			}
+func solve(n int, plansza [][]int, odwiedzone_pola int, position [2]int, tura int) [][]int {
+	if odwiedzone_pola == n*n {
+		return plansza
+	}
+	plansza[position[1]-1][position[0]-1] = tura
+	Ymoveset := [8]int{-1, 1, 2, 2, -2, -2, -1, 1}
+	Xmoveset := [8]int{-2, -2, -1, 1, -1, 1, 2, 2}
+	for i := 1; i <= 8; i++ {
+		NextXmove := position[0] + Xmoveset[i-1]
+		NextYmove := position[1] + Ymoveset[i-1]
+		if NextXmove <= n && NextXmove >= 1 && NextYmove <= n && NextYmove >= 1 && plansza[NextYmove-1][NextXmove-1] == 0 {
+			tura++
+			solve(n, plansza, odwiedzone_pola+1, [2]int{NextXmove, NextYmove}, tura)
 		}
 	}
-	return available_moves
-}
-
-// dokończyć
-
-func move(current_moveset [][2]int, previous_position [2]int, position [2]int, path int) {
-	path = 0
-	for nextMove := range current_moveset {
-		previous_position = position
-		position = current_moveset[nextMove+path]
-
-		current_moveset = check_movement(&position)
-		if len(current_moveset) == 0 {
-			if len(check_movement(&previous_position)) == 1 {
-				return
-			}
-			position = previous_position
-			path++
-			break
-		}
-
-		plansza[position[0]][position[1]] = 1
-		break
-	}
-
-	move(current_moveset, previous_position, position, path)
+	return plansza
 }

@@ -104,7 +104,7 @@ func count_moves(plansza [][]int, position [2]int, n int) int {
 
 Oraz napisałem prosty algorytm poruszania się.
 
-W poniższym kodzie zastosowałem rekurencję ale jest też możliwość użycia iteracji (iterując przez liczbę maksymalnych ruchów, w tym przypdku 8*8=64).
+W poniższym kodzie zastosowałem rekurencję ale jest też możliwość użycia iteracji (iterując przez liczbę maksymalnych ruchów, w tym przypadku 8*8=64).
 
 ```go
 func Warnsdorff(n int, plansza [][]int, position [2]int, tura int) [][]int {

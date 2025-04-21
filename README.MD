@@ -28,13 +28,17 @@ Program sprawdza każdy dostępny ruch nie prioryteryzując oraz nie sortując k
 
 Jednym z głównych wad tego rozwiązania (jeżeli oczywiście chodzi o szybkość) jest **backtracking**, czyli funckja pozwalająca programowi cofnąć ruch jeżeli ten się zablokował.
 Przez to algorytm musiałby iterować przez te same pola niesamowicie wiele razy.
-Co gorsza jest ponad [19,591,828,170,979,904](https://en.wikipedia.org/wiki/Knight%27s_tour#Number_of_tours) rozwiązań dla tego problemu (i jeszcze więcej możliwych ruchów), ten fakt jeszcze bardziej spowolania działanie programu opartego na **Brute-force** (praktycznie robi go nie możliwym do rozwiąznia).
+Co gorsza jest ponad [19 trylionów](https://en.wikipedia.org/wiki/Knight%27s_tour#Number_of_tours) rozwiązań dla tego problemu (i jeszcze więcej możliwych ruchów), ten fakt jeszcze bardziej spowolania działanie programu opartego na **Brute-force** (praktycznie robi go nie możliwym do rozwiąznia).
 
 ## Research i Lepsze Rozwiązanie?
 
 Na ratunek przyszedł **Algorytm Warndorff-a**.
 
-Założenia algorytmu są proste, skanując dostępne ruchy ma on wybrać ruch po którym będzie najmniej dostępnych ruchów. To tylko tyle. Jak się o tym dowiedziałem zabrałem się do pisania.
+Założenia algorytmu są proste, skanując dostępne ruchy ma on wybrać ruch po którym będzie najmniej dostępnych ruchów. To tylko tyle. 
+
+Dodatkowo w [notacji dużego O](https://pl.wikipedia.org/wiki/Asymptotyczne_tempo_wzrostu), **Algorytm Warndorff-a** ma **O(n^2)** złożoności obliczeniowej w porównianiu do metody z **Brute-force**-em która ma złożoność obliczeniową o wartości **O(8^(n^2))**.
+
+Jak się o tym dowiedziałem zabrałem się do pisania.
 
 Zadeklarowałem wszystkie potrzebne zmienne
 ```go
@@ -47,17 +51,37 @@ var n int
 
 
 func main() {
+	
 	var input string
-	fmt.Print("Podaj szerokość planszy: ")
+
+	// Pobieranie od użytkownika wymiaru planszy
+	fmt.Print("Podaj wymiar planszy: ")
 	fmt.Scan(&input)
 
+	var err error
+	n, err = strconv.Atoi(input)
+	if err != nil {
+		fmt.Println("Nie podałeś liczby!")
+		return
+	}
+
+	// Utworzenie planszy
+	plansza = make([][]int, n)
+	for i := range plansza {
+		plansza[i] = make([]int, n)
+	}
+
+	// Pobieranie od użytkownika pozycji skoczka
+	fmt.Print("Podaj pozycję skoczka x: ")
+	fmt.Scan(&input)
 	x, err = strconv.Atoi(input)
 	if err != nil {
 		fmt.Println("Nie podałeś liczby!")
 		return
 	}
 
-	fmt.Print("Podaj wysokość planszy: ")
+	// Pobieranie od użytkownika pozycji skoczka
+	fmt.Print("Podaj pozycję skoczka y: ")
 	fmt.Scan(&input)
 
 	y, err = strconv.Atoi(input)
@@ -66,22 +90,18 @@ func main() {
 		return
 	}
 
-    // tworzenie planszy z podanych wartości
-	plansza = make([][]int, y)
-	for i := range plansza {
-		plansza[i] = make([]int, x)
-	}
-
-    // wypisanie stanu planszy przed jakimkolwiek ruchem
+	tura := 1
 	fmt.Println("Plansza:")
-	for _, row := range plansza {
+	answer := Warnsdorff(n, plansza, [2]int{x, y}, tura)
+	
+	// Wypianie końcowego wyniku
+	for _, row := range answer {
 		fmt.Println(row)
 	}
-    position := [2]int{0, 4}
 }
 ```
 
-Następnie napisałem funkcję, która podlicza dostępne ruchy z danej pozycji
+Następnie napisałem funkcję, która podlicza dostępne ruchy z danej pozycji.
 
 ```go
 func count_moves(plansza [][]int, position [2]int, n int) int {
@@ -90,6 +110,7 @@ func count_moves(plansza [][]int, position [2]int, n int) int {
 	Xmoveset := [8]int{-2, -2, -1, 1, -1, 1, 2, 2}
 	counter := 0
 	for i := 1; i <= 8; i++ {
+		// Deklaracja następnej pozycji w kolejcę na podstawie starej pozycji i dostępnych ruchów
 		NextXmove := position[0] + Xmoveset[i-1]
 		NextYmove := position[1] + Ymoveset[i-1]
 		// Jeżeli można wykonać ruch, podlicz go
@@ -100,9 +121,7 @@ func count_moves(plansza [][]int, position [2]int, n int) int {
 	return counter
 }
 ```
-
-
-Oraz napisałem prosty algorytm poruszania się.
+Następnie utworzyłem funkcję, która jest "sercem" całego algorytmu.
 
 W poniższym kodzie zastosowałem rekurencję ale jest też możliwość użycia iteracji (iterując przez liczbę maksymalnych ruchów, w tym przypadku 8*8=64).
 
@@ -153,21 +172,9 @@ func Warnsdorff(n int, plansza [][]int, position [2]int, tura int) [][]int {
 
 ### Przykładowe rozwiązanie
 
-**Input:**
-- n: 8
-- x: 2
-- y: 3
+![image.info](./img/answer1.png)
 
-**Output:**
-
-[2 5 24 21 62 7 26 29] <br>
-[23 20 3 6 25 28 61 8] <br>
-[4 1 22 59 42 63 30 27]<br>
-[19 40 43 50 47 60 9 64]<br>
-[44 15 46 41 58 49 54 31]<br>
-[39 18 51 48 53 34 57 10]<br>
-[14 45 16 37 12 55 32 35]<br>
-[17 38 13 52 33 36 11 56]<br>
+Program wypisuję tablice w terminalu, liczby w nich oznaczają kolejny ruch (1 to jest pozycja startowa skoczka, 64 to pozycja końcowa)
 
 
 ## Cały kod

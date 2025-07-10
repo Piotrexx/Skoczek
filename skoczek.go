@@ -12,6 +12,8 @@ var plansza [][]int
 var n int
 var NextXmove, NextYMove int
 
+const alfabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
 func main() {
 
 	var input string
@@ -50,8 +52,28 @@ func main() {
 	tura := 1
 	fmt.Println("Plansza:")
 	answer := Warnsdorff(n, plansza, [2]int{px, py}, tura)
-	for _, row := range answer {
-		fmt.Println(row)
+	// formatowanie planszy
+
+	for i := range n {
+		fmt.Printf("   %s", string(rune(alfabet[i])))
+	}
+	fmt.Println()
+	for range n {
+		fmt.Print("------")
+	}
+	fmt.Println()
+
+	for iter, row := range answer {
+		fmt.Printf("%d| ", iter+1)
+		for _, step := range row {
+			if step < 10 {
+				fmt.Printf("%d   ", step)
+				continue
+			}
+			fmt.Printf("%d  ", step)
+		}
+		fmt.Println()
+
 	}
 }
 
